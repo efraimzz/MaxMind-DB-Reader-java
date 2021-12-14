@@ -63,6 +63,7 @@ final class Decoder {
         this.constructors = constructors;
     }
 
+    @SuppressWarnings("unchecked")
     private final NodeCache.Loader cacheLoader = this::decode;
 
     public <T> T decode(int offset, Class<T> cls) throws IOException {
@@ -112,7 +113,7 @@ final class Decoder {
             int targetOffset = (int) pointer;
             int position = buffer.position();
 
-            CacheKey key = new CacheKey(targetOffset, cls, genericType);
+            CacheKey<T> key = new CacheKey<T>(targetOffset, cls, genericType);
             DecodedValue o = cache.get(key, cacheLoader);
 
             buffer.position(position);
@@ -380,7 +381,8 @@ final class Decoder {
 
     private <T> Object decodeMapIntoObject(int size, Class<T> cls)
             throws IOException {
-        CachedConstructor<T> cachedConstructor = this.constructors.get(cls);
+        @SuppressWarnings("unchecked")
+        CachedConstructor<T> cachedConstructor = (CachedConstructor<T>)this.constructors.get(cls);
         Constructor<T> constructor;
         Class<?>[] parameterTypes;
         java.lang.reflect.Type[] parameterGenericTypes;
@@ -401,7 +403,7 @@ final class Decoder {
 
             this.constructors.put(
                     cls,
-                    new CachedConstructor(
+                    new CachedConstructor<T>(
                         constructor,
                         parameterTypes,
                         parameterGenericTypes,
